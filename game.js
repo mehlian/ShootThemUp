@@ -25,11 +25,22 @@ BasicGame.Game.prototype = {
     this.player.speed = 300;
     this.player.body.collideWorldBounds = true;
 
-    this.enemy = this.add.sprite(400, 200, 'greenEnemy');
-    this.enemy.animations.add('fly', [0, 1, 2], 20, true);
-    this.enemy.play('fly');
-    this.enemy.anchor.setTo(0.5, 0.5);
-    this.physics.enable(this.enemy, Phaser.Physics.ARCADE);
+    this.enemyPool = this.add.group();
+    this.enemyPool.enableBody = true;
+    this.enemyPool.physicsBodyType = Phaser.Physics.ARCADE;
+    this.enemyPool.createMultiple(50, 'greenEnemy');
+    this.enemyPool.setAll('anchor.x', 0.5);
+    this.enemyPool.setAll('anchor.y', 0.5);
+    this.enemyPool.setAll('outOfBoundsKill', true);
+    this.enemyPool.setAll('checkWorldBounds', true);
+
+    // Ser the animation for each sprite
+    this.enemyPool.forEach(function (enemy) {
+      enemy.animations.add('fly', [0, 1, 2], 20, true);
+    });
+
+    this.nextEnemyAt = 0;
+    this.enemyDelay = 1000;
 
     // Add an empty sprite group into our game
     this.bulletPool = this.add.group();
@@ -66,7 +77,17 @@ BasicGame.Game.prototype = {
     //  Honestly, just about anything could go here. It's YOUR game after all. Eat your heart out!
     this.sea.tilePosition.y += 0.2;
 
-    this.physics.arcade.overlap(this.bulletPool, this.enemy, this.enemyHit, null, this);
+    this.physics.arcade.overlap(this.bulletPool, this.enemyPool, this.enemyHit, null, this);
+
+    if (this.nextEnemyAt < this.time.now && this.enemyPool.countDead() > 0) {
+      this.nextEnemyAt = this.time.now + this.enemyDelay;
+      var enemy = this.enemyPool.getFirstExists(false);
+      // Spawn ar a random location top of screen
+      enemy.reset(this.rnd.integerInRange(20, 780), 0);
+      // Also randomize the speed
+      enemy.body.velocity.y = this.rnd.integerInRange(30, 60);
+      enemy.play('fly');
+    }
 
     this.player.body.velocity.x = 0;
     this.player.body.velocity.y = 0;
