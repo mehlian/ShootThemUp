@@ -60,6 +60,10 @@ BasicGame.Game.prototype = {
     else if (this.cursors.down.isDown) {
       this.player.body.velocity.y = this.player.speed;
     }
+
+    if (this.input.activePointer.isDown && this.physics.arcade.distanceToPointer(this.player) > 15) {
+      this.physics.arcade.moveToPointer(this.player, this.player.speed);
+    }
   },
 
   enemyHit: function (bullet, enemy) {
