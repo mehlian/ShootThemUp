@@ -31,7 +31,26 @@ BasicGame.Game.prototype = {
     this.enemy.anchor.setTo(0.5, 0.5);
     this.physics.enable(this.enemy, Phaser.Physics.ARCADE);
 
-    this.bullets = [];
+    // Add an empty sprite group into our game
+    this.bulletPool = this.add.group();
+
+    // Enable physics to the whole sprite group
+    this.bulletPool.enableBody = true;
+    this.bulletPool.physicsBodyType = Phaser.Physics.ARCADE;
+
+    // Add 100 'bullet' sprites in the group.
+    // By default this uses the first frame of the sprite sheet and
+    // sets the initial state as non-existing (i.e. killed/dead)
+    this.bulletPool.createMultiple(100, 'bullet');
+
+    // Sets anchor of all sprites
+    this.bulletPool.setAll('anchor.x', 0.5);
+    this.bulletPool.setAll('anchor.y', 0.5);
+
+    // Automatically kill the bullet sprites when they go out of bounds
+    this.bulletPool.setAll('outOfBoundsKill', true);
+    this.bulletPool.setAll('checkWorldBounds', true);
+
     this.nextShootAt = 0;
     this.shotDelay = 100;
 
@@ -46,9 +65,8 @@ BasicGame.Game.prototype = {
   update: function () {
     //  Honestly, just about anything could go here. It's YOUR game after all. Eat your heart out!
     this.sea.tilePosition.y += 0.2;
-    for (var i = 0; i < this.bullets.length; i++) {
-      this.physics.arcade.overlap(this.bullets[i], this.enemy, this.enemyHit, null, this);
-    }
+
+    this.physics.arcade.overlap(this.bulletPool, this.enemy, this.enemyHit, null, this);
 
     this.player.body.velocity.x = 0;
     this.player.body.velocity.y = 0;
@@ -85,13 +103,19 @@ BasicGame.Game.prototype = {
       return;
     }
 
+    if (this.bulletPool.countDead() === 0) {
+      return;
+    }
+
     this.nextShootAt = this.time.now + this.shotDelay;
 
-    var bullet = this.add.sprite(this.player.x, this.player.y - 20, 'bullet');
-    bullet.anchor.setTo(0.5, 0.5);
-    this.physics.enable(bullet, Phaser.Physics.ARCADE);
+    // Find the first dead bullet in the pool
+    var bullet = this.bulletPool.getFirstExists(false);
+
+    // Reset (revive) the sprite and place it in a new location
+    bullet.reset(this.player.x, this.player.y - 20);
+
     bullet.body.velocity.y = -500;
-    this.bullets.push(bullet);
   },
 
   enemyHit: function (bullet, enemy) {
