@@ -36,6 +36,11 @@ BasicGame.Game.prototype = {
     this.shotDelay = 100;
 
     this.cursors = this.input.keyboard.createCursorKeys();
+
+    this.instructions = this.add.text(400, 500, 'Use Arrow Keys to Move, Press Z to Fire\n' +
+      'Tapping/clicking does both', { font: '20px monospace', fill: '#fff', align: 'center' });
+    this.instructions.anchor.setTo(0.5, 0.5);
+    this.instExpire = this.time.now + 10000;
   },
 
   update: function () {
@@ -68,6 +73,10 @@ BasicGame.Game.prototype = {
 
     if (this.input.keyboard.isDown(Phaser.Keyboard.Z) || this.input.activePointer.isDown) {
       this.fire();
+    }
+
+    if (this.instructions.exists && this.time.now > this.instExpire) {
+      this.instructions.destroy();
     }
   },
 
