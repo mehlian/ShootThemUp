@@ -22,6 +22,8 @@ BasicGame.Game.prototype = {
     this.player.animations.add('fly', [0, 1, 2], 20, true);
     this.player.play('fly');
     this.physics.enable(this.player, Phaser.Physics.ARCADE);
+    this.player.speed = 300;
+    this.player.body.collideWorldBounds = true;
 
     this.enemy = this.add.sprite(400, 200, 'greenEnemy');
     this.enemy.animations.add('fly', [0, 1, 2], 20, true);
@@ -33,12 +35,31 @@ BasicGame.Game.prototype = {
     this.bullet.anchor.setTo(0.5, 0.5);
     this.physics.enable(this.bullet, Phaser.Physics.ARCADE);
     this.bullet.body.velocity.y = -500;
+
+    this.cursors = this.input.keyboard.createCursorKeys();
   },
 
   update: function () {
     //  Honestly, just about anything could go here. It's YOUR game after all. Eat your heart out!
     this.sea.tilePosition.y += 0.2;
     this.physics.arcade.overlap(this.bullet, this.enemy, this.enemyHit, null, this);
+
+    this.player.body.velocity.x = 0;
+    this.player.body.velocity.y = 0;
+
+    if (this.cursors.left.isDown) {
+      this.player.body.velocity.x = -this.player.speed;
+    }
+    else if (this.cursors.right.isDown) {
+      this.player.body.velocity.x = this.player.speed;
+    }
+
+    if (this.cursors.up.isDown) {
+      this.player.body.velocity.y = -this.player.speed;
+    }
+    else if (this.cursors.down.isDown) {
+      this.player.body.velocity.y = this.player.speed;
+    }
   },
 
   enemyHit: function (bullet, enemy) {
