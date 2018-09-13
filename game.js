@@ -10,11 +10,18 @@ BasicGame.Game.prototype = {
     this.load.image('bullet', 'assets/bullet.png');
     this.load.spritesheet('greenEnemy', 'assets/enemy.png', 32, 32);
     this.load.spritesheet('explosion', 'assets/explosion.png', 32, 32);
+    this.load.spritesheet('player', 'assets/player.png', 64, 64);
   },
 
   create: function () {
 
     this.sea = this.add.tileSprite(0, 0, 800, 600, 'sea');
+
+    this.player = this.add.sprite(400, 550, 'player');
+    this.player.anchor.setTo(0.5, 0.5);
+    this.player.animations.add('fly', [0, 1, 2], 20, true);
+    this.player.play('fly');
+    this.physics.enable(this.player, Phaser.Physics.ARCADE);
 
     this.enemy = this.add.sprite(400, 200, 'greenEnemy');
     this.enemy.animations.add('fly', [0, 1, 2], 20, true);
