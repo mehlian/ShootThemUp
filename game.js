@@ -30,6 +30,12 @@ BasicGame.Game.prototype = {
   update: function () {
     //  Honestly, just about anything could go here. It's YOUR game after all. Eat your heart out!
     this.sea.tilePosition.y += 0.2;
+    this.physics.arcade.overlap(this.bullet, this.enemy, this.enemyHit, null, this);
+  },
+
+  enemyHit: function (bullet, enemy) {
+    bullet.kill();
+    enemy.kill();
   },
 
   render: function () {
