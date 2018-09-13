@@ -19,6 +19,7 @@ BasicGame.Game.prototype = {
     this.enemy.animations.add('fly', [0, 1, 2], 20, true);
     this.enemy.play('fly');
     this.enemy.anchor.setTo(0.5, 0.5);
+    this.physics.enable(this.enemy, Phaser.Physics.ARCADE);
 
     this.bullet = this.add.sprite(400, 300, 'bullet');
     this.bullet.anchor.setTo(0.5, 0.5);
@@ -29,6 +30,11 @@ BasicGame.Game.prototype = {
   update: function () {
     //  Honestly, just about anything could go here. It's YOUR game after all. Eat your heart out!
     this.sea.tilePosition.y += 0.2;
+  },
+
+  render: function () {
+    this.game.debug.body(this.bullet);
+    this.game.debug.body(this.enemy);
   },
 
   quitGame: function (pointer) {
