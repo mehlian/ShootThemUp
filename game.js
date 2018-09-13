@@ -22,12 +22,13 @@ BasicGame.Game.prototype = {
 
     this.bullet = this.add.sprite(400, 300, 'bullet');
     this.bullet.anchor.setTo(0.5, 0.5);
+    this.physics.enable(this.bullet, Phaser.Physics.ARCADE);
+    this.bullet.body.velocity.y = -500;
   },
 
   update: function () {
     //  Honestly, just about anything could go here. It's YOUR game after all. Eat your heart out!
     this.sea.tilePosition.y += 0.2;
-    this.bullet.y -= 1;
   },
 
   quitGame: function (pointer) {
