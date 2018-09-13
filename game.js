@@ -18,12 +18,16 @@ BasicGame.Game.prototype = {
     this.enemy = this.add.sprite(400, 200, 'greenEnemy');
     this.enemy.animations.add('fly', [0, 1, 2], 20, true);
     this.enemy.play('fly');
+    this.enemy.anchor.setTo(0.5, 0.5);
 
     this.bullet = this.add.sprite(400, 300, 'bullet');
+    this.bullet.anchor.setTo(0.5, 0.5);
   },
 
   update: function () {
     //  Honestly, just about anything could go here. It's YOUR game after all. Eat your heart out!
+    this.sea.tilePosition.y += 0.2;
+    this.bullet.y -= 1;
   },
 
   quitGame: function (pointer) {
