@@ -24,6 +24,8 @@ BasicGame.Game.prototype = {
     this.physics.enable(this.player, Phaser.Physics.ARCADE);
     this.player.speed = 300;
     this.player.body.collideWorldBounds = true;
+    // 20x20 pixel hitbox, centered a little bit higher than the center
+    this.player.body.setSize(20, 20, 0, -5);
 
     this.enemyPool = this.add.group();
     this.enemyPool.enableBody = true;
@@ -79,6 +81,8 @@ BasicGame.Game.prototype = {
 
     this.physics.arcade.overlap(this.bulletPool, this.enemyPool, this.enemyHit, null, this);
 
+    this.physics.arcade.overlap(this.player, this.enemyPool, this.playerHit, null, this);
+
     if (this.nextEnemyAt < this.time.now && this.enemyPool.countDead() > 0) {
       this.nextEnemyAt = this.time.now + this.enemyDelay;
       var enemy = this.enemyPool.getFirstExists(false);
@@ -120,7 +124,7 @@ BasicGame.Game.prototype = {
   },
 
   fire: function () {
-    if (this.nextShootAt > this.time.now) {
+    if (!this.player.alive || this.nextShootAt > this.time.now) {
       return;
     }
 
@@ -137,6 +141,15 @@ BasicGame.Game.prototype = {
     bullet.reset(this.player.x, this.player.y - 20);
 
     bullet.body.velocity.y = -500;
+  },
+
+  playerHit: function (player, enemy) {
+    enemy.kill();
+    var explosion = this.add.sprite(player.x, player.y, 'explosion');
+    explosion.anchor.setTo(0.5, 0.5);
+    explosion.animations.add('boom');
+    explosion.play('boom', 15, false, true);
+    player.kill();
   },
 
   enemyHit: function (bullet, enemy) {
