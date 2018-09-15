@@ -66,6 +66,7 @@ BasicGame.Game.prototype = {
     this.enemyPool.setAll('anchor.y', 0.5);
     this.enemyPool.setAll('outOfBoundsKill', true);
     this.enemyPool.setAll('checkWorldBounds', true);
+    this.enemyPool.setAll('reward', BasicGame.ENEMY_REWARD, false, false, 0, true);
 
     // Set the animation for each sprite
     this.enemyPool.forEach(function (enemy) {
@@ -121,6 +122,12 @@ BasicGame.Game.prototype = {
     this.instructions = this.add.text(this.game.width / 2, this.game.height - 100, 'Use Arrow Keys to Move, Press Z to Fire\n' + 'Tapping/clicking does both', { font: '20px monospace', fill: '#fff', align: 'center' });
     this.instructions.anchor.setTo(0.5, 0.5);
     this.instExpire = this.time.now + BasicGame.INSTRUCTION_EXPIRE;
+
+    this.score = 0;
+    this.scoreText = this.add.text(
+      this.game.width / 2, 30, '' + this.score, { font: '20px monospace', fill: '#fff', align: 'center' }
+    );
+    this.scoreText.anchor.setTo(0.5, 0.5);
   },
 
   // 
@@ -216,7 +223,13 @@ BasicGame.Game.prototype = {
     }
     else {
       this.explode(enemy);
+      this.addToScore(enemy.reward);
     }
+  },
+
+  addToScore: function (score) {
+    this.score += score;
+    this.scoreText.text = this.score;
   },
 
   explode: function (sprite) {
