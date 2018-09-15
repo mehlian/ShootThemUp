@@ -67,9 +67,13 @@ BasicGame.Game.prototype = {
     this.enemyPool.setAll('outOfBoundsKill', true);
     this.enemyPool.setAll('checkWorldBounds', true);
 
-    // Ser the animation for each sprite
+    // Set the animation for each sprite
     this.enemyPool.forEach(function (enemy) {
       enemy.animations.add('fly', [0, 1, 2], 20, true);
+      enemy.animations.add('hit', [3, 1, 3, 2], 20, false);
+      enemy.events.onAnimationComplete.add(function (e) {
+        e.play('fly');
+      }, this);
     });
 
     this.nextEnemyAt = 0;
@@ -133,7 +137,7 @@ BasicGame.Game.prototype = {
       this.nextEnemyAt = this.time.now + this.enemyDelay;
       var enemy = this.enemyPool.getFirstExists(false);
       // Spawn at a random location top of screen
-      enemy.reset(this.rnd.integerInRange(20, this.game.width - 20), 0);
+      enemy.reset(this.rnd.integerInRange(20, this.game.width - 20), 0, BasicGame.ENEMY_HEALTH);
       // Also randomize the speed
       enemy.body.velocity.y = this.rnd.integerInRange(BasicGame.ENEMY_MIN_Y_VELOCITY, BasicGame.ENEMY_MAX_Y_VELOCITY);
       enemy.play('fly');
@@ -193,17 +197,26 @@ BasicGame.Game.prototype = {
     bullet.body.velocity.y = -BasicGame.BULLET_VELOCITY;
   },
 
+  enemyHit: function (bullet, enemy) {
+    bullet.kill();
+    this.damageEnemy(enemy, BasicGame.BULLET_DAMAGE);
+  },
+
   playerHit: function (player, enemy) {
-    this.explode(enemy);
-    enemy.kill();
+    // Crashing into an enemy only deals 5 damage
+    this.damageEnemy(enemy, BasicGame.CRASH_DAMAGE);
     this.explode(player);
     player.kill();
   },
 
-  enemyHit: function (bullet, enemy) {
-    bullet.kill();
-    this.explode(enemy);
-    enemy.kill();
+  damageEnemy: function (enemy, damage) {
+    enemy.damage(damage);
+    if (enemy.alive) {
+      enemy.play('hit');
+    }
+    else {
+      this.explode(enemy);
+    }
   },
 
   explode: function (sprite) {
