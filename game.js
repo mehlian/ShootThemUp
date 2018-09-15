@@ -67,6 +67,16 @@ BasicGame.Game.prototype = {
     this.nextShootAt = 0;
     this.shotDelay = 100;
 
+    this.explosionPool = this.add.group();
+    this.explosionPool.enableBody = true;
+    this.explosionPool.physicsBodyType = Phaser.Physics.ARCADE;
+    this.explosionPool.createMultiple(100, 'explosion');
+    this.explosionPool.setAll('anchor.x', 0.5);
+    this.explosionPool.setAll('anchor.y', 0.5);
+    this.explosionPool.forEach(function (explosion) {
+      explosion.animations.add('boom');
+    })
+
     this.cursors = this.input.keyboard.createCursorKeys();
 
     this.instructions = this.add.text(400, 500, 'Use Arrow Keys to Move, Press Z to Fire\n' + 'Tapping/clicking does both', { font: '20px monospace', fill: '#fff', align: 'center' });
@@ -143,21 +153,28 @@ BasicGame.Game.prototype = {
   },
 
   playerHit: function (player, enemy) {
+    this.explode(enemy);
     enemy.kill();
-    var explosion = this.add.sprite(player.x, player.y, 'explosion');
-    explosion.anchor.setTo(0.5, 0.5);
-    explosion.animations.add('boom');
-    explosion.play('boom', 15, false, true);
+    this.explode(player);
     player.kill();
   },
 
   enemyHit: function (bullet, enemy) {
     bullet.kill();
+    this.explode(enemy);
     enemy.kill();
-    var explosion = this.add.sprite(enemy.x, enemy.y, 'explosion');
-    explosion.anchor.setTo(0.5, 0.5);
-    explosion.animations.add('boom');
+  },
+
+  explode: function (sprite) {
+    if (this.explosionPool.countDead() === 0) {
+      return;
+    }
+    var explosion = this.explosionPool.getFirstExists(false);
+    explosion.reset(sprite.x, sprite.y);
     explosion.play('boom', 15, false, true);
+    // Add the original sprite's velocity to the explosion
+    explosion.body.velocity.x = sprite.body.velocity.x;
+    explosion.body.velocity.y = sprite.body.velocity.y;
   },
 
   render: function () {
