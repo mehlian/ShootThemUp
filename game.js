@@ -32,51 +32,6 @@ BasicGame.Game.prototype = {
     this.processDelayedEffects();
   },
 
-  fire: function () {
-    if (!this.player.alive || this.nextShootAt > this.time.now) {
-      return;
-    }
-
-    if (this.bulletPool.countDead() === 0) {
-      return;
-    }
-
-    this.nextShootAt = this.time.now + this.shotDelay;
-
-    // Find the first dead bullet in the pool
-    var bullet = this.bulletPool.getFirstExists(false);
-
-    // Reset (revive) the sprite and place it in a new location
-    bullet.reset(this.player.x, this.player.y - 20);
-
-    bullet.body.velocity.y = -500;
-  },
-
-  playerHit: function (player, enemy) {
-    this.explode(enemy);
-    enemy.kill();
-    this.explode(player);
-    player.kill();
-  },
-
-  enemyHit: function (bullet, enemy) {
-    bullet.kill();
-    this.explode(enemy);
-    enemy.kill();
-  },
-
-  explode: function (sprite) {
-    if (this.explosionPool.countDead() === 0) {
-      return;
-    }
-    var explosion = this.explosionPool.getFirstExists(false);
-    explosion.reset(sprite.x, sprite.y);
-    explosion.play('boom', 15, false, true);
-    // Add the original sprite's velocity to the explosion
-    explosion.body.velocity.x = sprite.body.velocity.x;
-    explosion.body.velocity.y = sprite.body.velocity.y;
-  },
-
   render: function () {
     // this.game.debug.body(this.bullet);
     // this.game.debug.body(this.enemy);
@@ -87,7 +42,7 @@ BasicGame.Game.prototype = {
   //
   setupBackground: function () {
     this.sea = this.add.tileSprite(0, 0, this.game.width, this.game.height, 'sea');
-    this.sea.autoScroll(0, 12);
+    this.sea.autoScroll(0, BasicGame.SEA_SCROLL_SPEED);
   },
 
   setupPlayer: function () {
@@ -96,7 +51,7 @@ BasicGame.Game.prototype = {
     this.player.animations.add('fly', [0, 1, 2], 20, true);
     this.player.play('fly');
     this.physics.enable(this.player, Phaser.Physics.ARCADE);
-    this.player.speed = 300;
+    this.player.speed = BasicGame.PLAYER_SPEED;
     this.player.body.collideWorldBounds = true;
     // 20x20 pixel hitbox, centered a little bit higher than the center
     this.player.body.setSize(20, 20, 0, -5);
@@ -118,7 +73,7 @@ BasicGame.Game.prototype = {
     });
 
     this.nextEnemyAt = 0;
-    this.enemyDelay = 1000;
+    this.enemyDelay = BasicGame.SPAWN_ENEMY_DELAY;
   },
 
   setupBullets: function () {
@@ -143,7 +98,7 @@ BasicGame.Game.prototype = {
     this.bulletPool.setAll('checkWorldBounds', true);
 
     this.nextShootAt = 0;
-    this.shotDelay = 100;
+    this.shotDelay = BasicGame.SHOT_DELAY;
   },
 
   setupExplosions: function () {
@@ -161,7 +116,7 @@ BasicGame.Game.prototype = {
   setupText: function () {
     this.instructions = this.add.text(this.game.width / 2, this.game.height - 100, 'Use Arrow Keys to Move, Press Z to Fire\n' + 'Tapping/clicking does both', { font: '20px monospace', fill: '#fff', align: 'center' });
     this.instructions.anchor.setTo(0.5, 0.5);
-    this.instExpire = this.time.now + 10000;
+    this.instExpire = this.time.now + BasicGame.INSTRUCTION_EXPIRE;
   },
 
   // 
@@ -180,7 +135,7 @@ BasicGame.Game.prototype = {
       // Spawn at a random location top of screen
       enemy.reset(this.rnd.integerInRange(20, this.game.width - 20), 0);
       // Also randomize the speed
-      enemy.body.velocity.y = this.rnd.integerInRange(30, 60);
+      enemy.body.velocity.y = this.rnd.integerInRange(BasicGame.ENEMY_MIN_Y_VELOCITY, BasicGame.ENEMY_MAX_Y_VELOCITY);
       enemy.play('fly');
     }
   },
@@ -216,6 +171,51 @@ BasicGame.Game.prototype = {
     if (this.instructions.exists && this.time.now > this.instExpire) {
       this.instructions.destroy();
     }
+  },
+
+  fire: function () {
+    if (!this.player.alive || this.nextShootAt > this.time.now) {
+      return;
+    }
+
+    if (this.bulletPool.countDead() === 0) {
+      return;
+    }
+
+    this.nextShootAt = this.time.now + this.shotDelay;
+
+    // Find the first dead bullet in the pool
+    var bullet = this.bulletPool.getFirstExists(false);
+
+    // Reset (revive) the sprite and place it in a new location
+    bullet.reset(this.player.x, this.player.y - 20);
+
+    bullet.body.velocity.y = -BasicGame.BULLET_VELOCITY;
+  },
+
+  playerHit: function (player, enemy) {
+    this.explode(enemy);
+    enemy.kill();
+    this.explode(player);
+    player.kill();
+  },
+
+  enemyHit: function (bullet, enemy) {
+    bullet.kill();
+    this.explode(enemy);
+    enemy.kill();
+  },
+
+  explode: function (sprite) {
+    if (this.explosionPool.countDead() === 0) {
+      return;
+    }
+    var explosion = this.explosionPool.getFirstExists(false);
+    explosion.reset(sprite.x, sprite.y);
+    explosion.play('boom', 15, false, true);
+    // Add the original sprite's velocity to the explosion
+    explosion.body.velocity.x = sprite.body.velocity.x;
+    explosion.body.velocity.y = sprite.body.velocity.y;
   },
 
   quitGame: function (pointer) {
