@@ -86,12 +86,12 @@ BasicGame.Game.prototype = {
   // create() - related functions
   //
   setupBackground: function () {
-    this.sea = this.add.tileSprite(0, 0, 800, 600, 'sea');
+    this.sea = this.add.tileSprite(0, 0, this.game.width, this.game.height, 'sea');
     this.sea.autoScroll(0, 12);
   },
 
   setupPlayer: function () {
-    this.player = this.add.sprite(400, 550, 'player');
+    this.player = this.add.sprite(this.game.width / 2, this.game.height - 50, 'player');
     this.player.anchor.setTo(0.5, 0.5);
     this.player.animations.add('fly', [0, 1, 2], 20, true);
     this.player.play('fly');
@@ -159,7 +159,7 @@ BasicGame.Game.prototype = {
   },
 
   setupText: function () {
-    this.instructions = this.add.text(400, 500, 'Use Arrow Keys to Move, Press Z to Fire\n' + 'Tapping/clicking does both', { font: '20px monospace', fill: '#fff', align: 'center' });
+    this.instructions = this.add.text(this.game.width / 2, this.game.height - 100, 'Use Arrow Keys to Move, Press Z to Fire\n' + 'Tapping/clicking does both', { font: '20px monospace', fill: '#fff', align: 'center' });
     this.instructions.anchor.setTo(0.5, 0.5);
     this.instExpire = this.time.now + 10000;
   },
@@ -178,7 +178,7 @@ BasicGame.Game.prototype = {
       this.nextEnemyAt = this.time.now + this.enemyDelay;
       var enemy = this.enemyPool.getFirstExists(false);
       // Spawn at a random location top of screen
-      enemy.reset(this.rnd.integerInRange(20, 780), 0);
+      enemy.reset(this.rnd.integerInRange(20, this.game.width - 20), 0);
       // Also randomize the speed
       enemy.body.velocity.y = this.rnd.integerInRange(30, 60);
       enemy.play('fly');
