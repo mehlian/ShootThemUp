@@ -26,50 +26,10 @@ BasicGame.Game.prototype = {
   },
 
   update: function () {
-    //  Honestly, just about anything could go here. It's YOUR game after all. Eat your heart out!
-
-    this.physics.arcade.overlap(this.bulletPool, this.enemyPool, this.enemyHit, null, this);
-
-    this.physics.arcade.overlap(this.player, this.enemyPool, this.playerHit, null, this);
-
-    if (this.nextEnemyAt < this.time.now && this.enemyPool.countDead() > 0) {
-      this.nextEnemyAt = this.time.now + this.enemyDelay;
-      var enemy = this.enemyPool.getFirstExists(false);
-      // Spawn at a random location top of screen
-      enemy.reset(this.rnd.integerInRange(20, 780), 0);
-      // Also randomize the speed
-      enemy.body.velocity.y = this.rnd.integerInRange(30, 60);
-      enemy.play('fly');
-    }
-
-    this.player.body.velocity.x = 0;
-    this.player.body.velocity.y = 0;
-
-    if (this.cursors.left.isDown) {
-      this.player.body.velocity.x = -this.player.speed;
-    }
-    else if (this.cursors.right.isDown) {
-      this.player.body.velocity.x = this.player.speed;
-    }
-
-    if (this.cursors.up.isDown) {
-      this.player.body.velocity.y = -this.player.speed;
-    }
-    else if (this.cursors.down.isDown) {
-      this.player.body.velocity.y = this.player.speed;
-    }
-
-    if (this.input.activePointer.isDown && this.physics.arcade.distanceToPointer(this.player) > 15) {
-      this.physics.arcade.moveToPointer(this.player, this.player.speed);
-    }
-
-    if (this.input.keyboard.isDown(Phaser.Keyboard.Z) || this.input.activePointer.isDown) {
-      this.fire();
-    }
-
-    if (this.instructions.exists && this.time.now > this.instExpire) {
-      this.instructions.destroy();
-    }
+    this.checkCollisions();
+    this.spawnEnemies();
+    this.processPayerInput();
+    this.processDelayedEffects();
   },
 
   fire: function () {
@@ -202,6 +162,60 @@ BasicGame.Game.prototype = {
     this.instructions = this.add.text(400, 500, 'Use Arrow Keys to Move, Press Z to Fire\n' + 'Tapping/clicking does both', { font: '20px monospace', fill: '#fff', align: 'center' });
     this.instructions.anchor.setTo(0.5, 0.5);
     this.instExpire = this.time.now + 10000;
+  },
+
+  // 
+  // update()- related functions
+  //
+  checkCollisions: function () {
+    this.physics.arcade.overlap(this.bulletPool, this.enemyPool, this.enemyHit, null, this);
+
+    this.physics.arcade.overlap(this.player, this.enemyPool, this.playerHit, null, this);
+  },
+
+  spawnEnemies: function () {
+    if (this.nextEnemyAt < this.time.now && this.enemyPool.countDead() > 0) {
+      this.nextEnemyAt = this.time.now + this.enemyDelay;
+      var enemy = this.enemyPool.getFirstExists(false);
+      // Spawn at a random location top of screen
+      enemy.reset(this.rnd.integerInRange(20, 780), 0);
+      // Also randomize the speed
+      enemy.body.velocity.y = this.rnd.integerInRange(30, 60);
+      enemy.play('fly');
+    }
+  },
+
+  processPayerInput: function () {
+    this.player.body.velocity.x = 0;
+    this.player.body.velocity.y = 0;
+
+    if (this.cursors.left.isDown) {
+      this.player.body.velocity.x = -this.player.speed;
+    }
+    else if (this.cursors.right.isDown) {
+      this.player.body.velocity.x = this.player.speed;
+    }
+
+    if (this.cursors.up.isDown) {
+      this.player.body.velocity.y = -this.player.speed;
+    }
+    else if (this.cursors.down.isDown) {
+      this.player.body.velocity.y = this.player.speed;
+    }
+
+    if (this.input.activePointer.isDown && this.physics.arcade.distanceToPointer(this.player) > 15) {
+      this.physics.arcade.moveToPointer(this.player, this.player.speed);
+    }
+
+    if (this.input.keyboard.isDown(Phaser.Keyboard.Z) || this.input.activePointer.isDown) {
+      this.fire();
+    }
+  },
+
+  processDelayedEffects: function () {
+    if (this.instructions.exists && this.time.now > this.instExpire) {
+      this.instructions.destroy();
+    }
   },
 
   quitGame: function (pointer) {
