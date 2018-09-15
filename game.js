@@ -85,7 +85,7 @@ BasicGame.Game.prototype = {
     if (this.nextEnemyAt < this.time.now && this.enemyPool.countDead() > 0) {
       this.nextEnemyAt = this.time.now + this.enemyDelay;
       var enemy = this.enemyPool.getFirstExists(false);
-      // Spawn ar a random location top of screen
+      // Spawn at a random location top of screen
       enemy.reset(this.rnd.integerInRange(20, 780), 0);
       // Also randomize the speed
       enemy.body.velocity.y = this.rnd.integerInRange(30, 60);
