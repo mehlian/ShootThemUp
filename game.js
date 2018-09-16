@@ -29,7 +29,7 @@ BasicGame.Game.prototype = {
   update: function () {
     this.checkCollisions();
     this.spawnEnemies();
-    this.processPayerInput();
+    this.processPlayerInput();
     this.processDelayedEffects();
   },
 
@@ -164,7 +164,7 @@ BasicGame.Game.prototype = {
     }
   },
 
-  processPayerInput: function () {
+  processPlayerInput: function () {
     this.player.body.velocity.x = 0;
     this.player.body.velocity.y = 0;
 
@@ -187,7 +187,12 @@ BasicGame.Game.prototype = {
     }
 
     if (this.input.keyboard.isDown(Phaser.Keyboard.Z) || this.input.activePointer.isDown) {
-      this.fire();
+      if (this.returnText && this.returnText.exists) {
+        this.quitGame();
+      }
+      else {
+        this.fire();
+      }
     }
   },
 
@@ -199,6 +204,12 @@ BasicGame.Game.prototype = {
     if (this.ghostUntil && this.ghostUntil < this.time.now) {
       this.ghostUntil = null;
       this.player.play('fly');
+    }
+
+    if (this.showReturn && this.time.now > this.showReturn) {
+      this.returnText = this.add.text(this.game.width / 2, this.game.height / 2 + 20, 'Press Z or Tap Game to go back to Main Menu', { font: '16px sans-serif', fill: '#fff' });
+      this.returnText.anchor.setTo(0.5, 0.5);
+      this.showReturn = false;
     }
   },
 
@@ -243,6 +254,7 @@ BasicGame.Game.prototype = {
     else {
       this.explode(player);
       player.kill();
+      this.displayEnd(false);
     }
   },
 
@@ -260,6 +272,10 @@ BasicGame.Game.prototype = {
   addToScore: function (score) {
     this.score += score;
     this.scoreText.text = this.score;
+    if (this.score >= 2000) {
+      this.enemyPool.destroy();
+      this.displayEnd(true);
+    }
   },
 
   explode: function (sprite) {
@@ -274,11 +290,32 @@ BasicGame.Game.prototype = {
     explosion.body.velocity.y = sprite.body.velocity.y;
   },
 
+  displayEnd: function (win) {
+    // You can't win and lose at the same time
+    if (this.endText && this.endText.exists) {
+      return;
+    }
+
+    var msg = win ? 'You Win!!!' : 'Game Over!';
+    this.endText = this.add.text(this.game.width / 2, this.game.height / 2 - 60, msg, { font: '72px serif', fill: '#fff' });
+    this.endText.anchor.setTo(0.5, 0);
+
+    this.showReturn = this.time.now + BasicGame.RETURN_MESSAGE_DELAY;
+  },
+
   quitGame: function (pointer) {
 
     //  Here you should destroy anything you no longer need.
     //  Stop music, delete sprites, purge caches, free resources, all that good stuff.
-
+    this.sea.destroy();
+    this.player.destroy();
+    this.enemyPool.destroy();
+    this.bulletPool.destroy();
+    this.explosionPool.destroy();
+    this.instructions.destroy();
+    this.scoreText.destroy();
+    this.endText.destroy();
+    this.returnText.destroy();
     //  Then let's go back to the main menu.
     this.state.start('MainMenu');
 
