@@ -9,6 +9,7 @@ BasicGame.Game.prototype = {
     this.load.image('sea', 'assets/sea.png');
     this.load.image('bullet', 'assets/bullet.png');
     this.load.spritesheet('greenEnemy', 'assets/enemy.png', 32, 32);
+    this.load.spritesheet('whiteEnemy', 'assets/shooting-enemy.png', 32, 32);
     this.load.spritesheet('explosion', 'assets/explosion.png', 32, 32);
     this.load.spritesheet('player', 'assets/player.png', 64, 64);
   },
@@ -81,6 +82,29 @@ BasicGame.Game.prototype = {
 
     this.nextEnemyAt = 0;
     this.enemyDelay = BasicGame.SPAWN_ENEMY_DELAY;
+
+    this.shooterPool = this.add.group();
+    this.shooterPool.enableBody = true;
+    this.shooterPool.physicsBodyType = Phaser.Physics.ARCADE;
+    this.shooterPool.createMultiple(20, 'whiteEnemy');
+    this.shooterPool.setAll('anchor.x', 0.5);
+    this.shooterPool.setAll('anchor.y', 0.5);
+    this.shooterPool.setAll('outOfBoundsKill', true);
+    this.shooterPool.setAll('checkWorldBounds', true);
+    this.shooterPool.setAll('reward', BasicGame.SHOOTER_REWARD, false, false, 0, true);
+
+    // Set the animation for each sprite
+    this.shooterPool.forEach(function (enemy) {
+      enemy.animations.add('fly', [0, 1, 2], 20, true);
+      enemy.animations.add('hit', [3, 1, 3, 2], 20, false);
+      enemy.events.onAnimationComplete.add(function (e) {
+        e.play('fly');
+      }, this);
+    });
+
+    // Start spawning 5 seconds into the game
+    this.nexShooterAt = this.time.now + Phaser.Timer.SECOND * 5;
+    this.shooterDelay = BasicGame.SPAWN_SHOOTER_DELAY;
   },
 
   setupBullets: function () {
@@ -161,6 +185,25 @@ BasicGame.Game.prototype = {
       // Also randomize the speed
       enemy.body.velocity.y = this.rnd.integerInRange(BasicGame.ENEMY_MIN_Y_VELOCITY, BasicGame.ENEMY_MAX_Y_VELOCITY);
       enemy.play('fly');
+    }
+
+    if (this.nexShooterAt < this.time.now && this.shooterPool.countDead() > 0) {
+      this.nexShooterAt = this.time.now + this.shooterDelay;
+      var shooter = this.shooterPool.getFirstExists(false);
+
+      // Spawn at random location ar the top
+      shooter.reset(this.rnd.integerInRange(20, this.game.width - 20), 0, BasicGame.SHOOTER_HEALTH);
+
+      // Choose a random target location at the bottom
+      var target = this.rnd.integerInRange(20, this.game.width - 20);
+
+      // Move to target and rotate the sprite accordingly
+      shooter.rotation = this.physics.arcade.moveToXY(shooter, target, this.game.height, this.rnd.integerInRange(BasicGame.SHOOTER_MIN_VELOCITY, BasicGame.SHOOTER_MAX_VELOCITY)) - Math.PI / 2;
+
+      shooter.play('fly');
+
+      // Each shooter has their own shoot timer
+      shooter.nexShooterAt = 0;
     }
   },
 
