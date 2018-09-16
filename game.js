@@ -157,7 +157,7 @@ BasicGame.Game.prototype = {
     this.bulletPool.setAll('outOfBoundsKill', true);
     this.bulletPool.setAll('checkWorldBounds', true);
 
-    this.nextShootAt = 0;
+    this.nextShotAt = 0;
     this.shotDelay = BasicGame.SHOT_DELAY;
   },
 
@@ -267,7 +267,7 @@ BasicGame.Game.prototype = {
       shooter.play('fly');
 
       // Each shooter has their own shoot timer
-      shooter.nextShooterAt = 0;
+      shooter.nextShotAt = 0;
     }
   },
 
@@ -332,11 +332,11 @@ BasicGame.Game.prototype = {
   },
 
   fire: function () {
-    if (!this.player.alive || this.nextShootAt > this.time.now) {
+    if (!this.player.alive || this.nextShotAt > this.time.now) {
       return;
     }
 
-    this.nextShootAt = this.time.now + this.shotDelay;
+    this.nextShotAt = this.time.now + this.shotDelay;
     this.playerFireSFX.play();
 
     var bullet;
@@ -370,11 +370,11 @@ BasicGame.Game.prototype = {
 
   enemyFire: function () {
     this.shooterPool.forEachAlive(function (enemy) {
-      if (this.time.now > enemy.nextShootAt && this.enemyBulletPool.countDead() > 0) {
+      if (this.time.now > enemy.nextShotAt && this.enemyBulletPool.countDead() > 0) {
         var bullet = this.enemyBulletPool.getFirstExists(false);
         bullet.reset(enemy.x, enemy.y);
         this.physics.arcade.moveToObject(bullet, this.player, BasicGame.ENEMY_BULLET_VELOCITY);
-        enemy.nextShootAt = this.time.now + BasicGame.SHOOTER_SHOT_DELAY;
+        enemy.nextShotAt = this.time.now + BasicGame.SHOOTER_SHOT_DELAY;
         this.enemyFireSFX.play();
       }
     }, this);
