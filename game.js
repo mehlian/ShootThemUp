@@ -8,6 +8,7 @@ BasicGame.Game.prototype = {
   preload: function () {
     this.load.image('sea', 'assets/sea.png');
     this.load.image('bullet', 'assets/bullet.png');
+    this.load.image('enemyBullet', 'assets/enemy-bullet.png');
     this.load.spritesheet('greenEnemy', 'assets/enemy.png', 32, 32);
     this.load.spritesheet('whiteEnemy', 'assets/shooting-enemy.png', 32, 32);
     this.load.spritesheet('explosion', 'assets/explosion.png', 32, 32);
@@ -30,6 +31,7 @@ BasicGame.Game.prototype = {
   update: function () {
     this.checkCollisions();
     this.spawnEnemies();
+    this.enemyFire();
     this.processPlayerInput();
     this.processDelayedEffects();
   },
@@ -108,6 +110,16 @@ BasicGame.Game.prototype = {
   },
 
   setupBullets: function () {
+    this.enemyBulletPool = this.add.group();
+    this.enemyBulletPool.enableBody = true;
+    this.enemyBulletPool.physicsBodyType = Phaser.Physics.ARCADE;
+    this.enemyBulletPool.createMultiple(100, 'enemyBullet');
+    this.enemyBulletPool.setAll('anchor.x', 0.5);
+    this.enemyBulletPool.setAll('anchor.y', 0.5);
+    this.enemyBulletPool.setAll('outOfBoundsKill', true);
+    this.enemyBulletPool.setAll('checkWorldBounds', true);
+    this.enemyBulletPool.setAll('reward', 0, false, false, 0, true);
+
     // Add an empty sprite group into our game
     this.bulletPool = this.add.group();
 
@@ -173,7 +185,13 @@ BasicGame.Game.prototype = {
   checkCollisions: function () {
     this.physics.arcade.overlap(this.bulletPool, this.enemyPool, this.enemyHit, null, this);
 
+    this.physics.arcade.overlap(this.bulletPool, this.shooterPool, this.enemyHit, null, this);
+
     this.physics.arcade.overlap(this.player, this.enemyPool, this.playerHit, null, this);
+
+    this.physics.arcade.overlap(this.player, this.shooterPool, this.playerHit, null, this);
+
+    this.physics.arcade.overlap(this.player, this.enemyBulletPool, this.playerHit, null, this);
   },
 
   spawnEnemies: function () {
@@ -276,6 +294,17 @@ BasicGame.Game.prototype = {
     bullet.body.velocity.y = -BasicGame.BULLET_VELOCITY;
   },
 
+  enemyFire: function () {
+    this.shooterPool.forEachAlive(function (enemy) {
+      if (this.time.now > enemy.nextShootAt && this.enemyBulletPool.countDead() > 0) {
+        var bullet = this.enemyBulletPool.getFirstExists(false);
+        bullet.reset(enemy.x, enemy.y);
+        this.physics.arcade.moveToObject(bullet, this.player, BasicGame.ENEMY_BULLET_VELOCITY);
+        enemy.nextShootAt = this.time.now + BasicGame.SHOOTER_SHOT_DELAY;
+      }
+    }, this);
+  },
+
   enemyHit: function (bullet, enemy) {
     bullet.kill();
     this.damageEnemy(enemy, BasicGame.BULLET_DAMAGE);
@@ -317,6 +346,8 @@ BasicGame.Game.prototype = {
     this.scoreText.text = this.score;
     if (this.score >= 2000) {
       this.enemyPool.destroy();
+      this.shooterPool.destroy();
+      this.enemyBulletPool.destroy();
       this.displayEnd(true);
     }
   },
