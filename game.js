@@ -105,7 +105,7 @@ BasicGame.Game.prototype = {
     });
 
     // Start spawning 5 seconds into the game
-    this.nexShooterAt = this.time.now + Phaser.Timer.SECOND * 5;
+    this.nextShooterAt = this.time.now + Phaser.Timer.SECOND * 5;
     this.shooterDelay = BasicGame.SPAWN_SHOOTER_DELAY;
   },
 
@@ -205,8 +205,8 @@ BasicGame.Game.prototype = {
       enemy.play('fly');
     }
 
-    if (this.nexShooterAt < this.time.now && this.shooterPool.countDead() > 0) {
-      this.nexShooterAt = this.time.now + this.shooterDelay;
+    if (this.nextShooterAt < this.time.now && this.shooterPool.countDead() > 0) {
+      this.nextShooterAt = this.time.now + this.shooterDelay;
       var shooter = this.shooterPool.getFirstExists(false);
 
       // Spawn at random location ar the top
@@ -221,7 +221,7 @@ BasicGame.Game.prototype = {
       shooter.play('fly');
 
       // Each shooter has their own shoot timer
-      shooter.nexShooterAt = 0;
+      shooter.nextShooterAt = 0;
     }
   },
 
